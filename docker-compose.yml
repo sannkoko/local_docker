@@ -1,0 +1,91 @@
+version: '3.8'
+
+networks:
+  local:
+    name: local
+
+services:
+  nginx:
+    build: 
+      context: .
+      dockerfile: nginx.dockerfile
+    container_name: nginx
+    depends_on:
+      - php
+      - mysql
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./code:/var/www/html
+    networks:
+      - local
+
+  php:
+    build: 
+      context: .
+      dockerfile: php.dockerfile
+    container_name: php
+    ports:
+      - 9000:9000
+    volumes:
+      - ./code:/var/www/html
+    networks:
+      - local
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    ports:
+      - 4306:3306
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: laraveldb
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    networks:
+      - local
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    ports:
+      - 4307:3306
+    volumes:
+      - ./mariadb:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: laraveldb
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    networks:
+      - local
+
+  composer:
+    image: composer:1.10.8
+    container_name: composer
+    volumes:
+      - ./code:/var/www/html
+    working_dir: /var/www/html
+    networks:
+      - local
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    container_name: phpmyadmin
+    depends_on:
+      - mysql
+      - mariadb
+    ports:
+      - 8081:80
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: rootsecret
+    networks:
+      - local
+
+    
+
